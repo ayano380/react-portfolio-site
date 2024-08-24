@@ -1,18 +1,22 @@
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { useEffect, useReducer } from 'react';
-import axios from 'axios';
-import { skillReducer, initialState, actionTypes } from '../reducers/skillReducer';
+ import axios from 'axios';
+ import { skillReducer, initialState, actionTypes } from '../reducers/skillReducer';
 import { requestStates } from '../constants';
-
+import { useSkills } from '../customHooks/useSkills';
 
 export const Skills = () => {
+  const [sortedLanguageList, fetchRequestState, converseCountToPercentage] = useSkills();
   const [state, dispatch] = useReducer(skillReducer, initialState);
 
   const convertCountToPercentage = (count) => {
     if (count > 10) { return 100; }
     return count * 10;
     
+    const sortedLanguageList = () => (
+      state.languageList.sort((firstLang, nextLang) =>  nextLang.count - firstLang.count)
+    )
   };
 
   
@@ -49,14 +53,14 @@ export const Skills = () => {
         </div>
         <div className="skills-container">
         {
-            state.requestState === requestStates.loading && (
+            fetchRequestState === requestStates.loading && (
               <p className="description">取得中...</p>
             )
           }
           {
-            state.requestState === requestStates.success && (
-              state.languageList.map((item, index) => (
-                <div key={index}>
+            fetchRequestState === requestStates.success && (
+              sortedLanguageList().map((item, index) => (
+                <div className="skill-item" key={index}>
                   <p className="description"><strong>{item.language}</strong></p>
                   <CircularProgressbar value={convertCountToPercentage(item.count)} text={`${convertCountToPercentage(item.count)}%`} />
                 </div>
@@ -64,7 +68,7 @@ export const Skills = () => {
             )
           }
           {
-           state.requestState === requestStates.error && (
+           fetchRequestState === requestStates.error && (
              <p className="description">エラーが発生しました</p>
            )
          }
